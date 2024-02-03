@@ -25,7 +25,7 @@ int sleep(int);
 // Add system calls below
 int hello(void);
 int uniq(int, int, int, int, int);
-int find(char*, char*, int, int, int, int, int);
+void find(char*, char*);
 
 // ulib.c
 int stat(const char*, struct stat*);

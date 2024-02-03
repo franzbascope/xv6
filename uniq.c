@@ -18,7 +18,7 @@ uniq(int fd, int cFlag, int uFlag, int wFlag, int width){
     char curr[512];
     char next[512];
 
-    while (n = read(fd, buf1, sizeof(buf1)) > 0)
+    while ((n = read(fd, buf1, sizeof(buf1))) > 0)
     {
         for (int k = 0; buf1[k] != '\0'; k++)
         {
