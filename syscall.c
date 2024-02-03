@@ -102,7 +102,9 @@ extern int sys_sleep(void);
 extern int sys_unlink(void);
 extern int sys_wait(void);
 extern int sys_write(void);
-extern int sys_uptime(void);
+//Add other system calls below
+extern int sys_hello(void);
+extern int sys_uniq(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -118,7 +120,6 @@ static int (*syscalls[])(void) = {
 [SYS_getpid]  sys_getpid,
 [SYS_sbrk]    sys_sbrk,
 [SYS_sleep]   sys_sleep,
-[SYS_uptime]  sys_uptime,
 [SYS_open]    sys_open,
 [SYS_write]   sys_write,
 [SYS_mknod]   sys_mknod,

@@ -23,7 +23,7 @@ fmtname(char *path)
 }
 
 void
-ls(char *path)
+ls(char *path, int flag)
 {
   char buf[512], *p;
   int fd;
@@ -57,13 +57,47 @@ ls(char *path)
     while(read(fd, &de, sizeof(de)) == sizeof(de)){
       if(de.inum == 0)
         continue;
-      memmove(p, de.name, DIRSIZ);
-      p[DIRSIZ] = 0;
-      if(stat(buf, &st) < 0){
-        printf(1, "ls: cannot stat %s\n", buf);
-        continue;
+      if (flag)
+      {
+        memmove(p, de.name, DIRSIZ);
+        p[DIRSIZ] = 0;
+        if(stat(buf, &st) < 0){
+          printf(1, "ls: cannot stat %s\n", buf);
+          continue;
+        }
+        switch (st.type)
+        {
+        case T_FILE:
+          printf(1, "%s %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
+          break;
+        case T_DIR:
+          printf(1, "%s/ %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
+          break;
+        }
       }
-      printf(1, "%s %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
+      else
+      {
+        memmove(p, de.name, DIRSIZ);
+        p[DIRSIZ] = 0;
+        if(stat(buf, &st) < 0){
+          printf(1, "ls: cannot stat %s\n", buf);
+          continue;
+        }
+        if (de.name[0] == '.')
+        {
+          continue;
+        }
+        
+        switch (st.type)
+        {
+        case T_FILE:
+          printf(1, "%s %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
+          break;
+        case T_DIR:
+          printf(1, "%s/ %d %d %d\n", fmtname(buf), st.type, st.ino, st.size);
+          break;
+        }
+      }
     }
     break;
   }
@@ -74,12 +108,21 @@ int
 main(int argc, char *argv[])
 {
   int i;
+  int flag = 0;
 
   if(argc < 2){
-    ls(".");
+    ls(".", flag);
     exit();
   }
-  for(i=1; i<argc; i++)
-    ls(argv[i]);
+  else if (strcmp(argv[1], "-a") == 0)
+  {
+    flag = 1;
+    ls(".", flag);
+  }
+  else
+  {
+    for(i=1; i<argc; i++)
+    ls(argv[i], flag);
+  }
   exit();
 }

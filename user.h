@@ -22,7 +22,10 @@ int dup(int);
 int getpid(void);
 char* sbrk(int);
 int sleep(int);
-int uptime(void);
+// Add system calls below
+int hello(void);
+int uniq(int, int, int, int, int);
+int find(char*, char*, int, int, int, int, int);
 
 // ulib.c
 int stat(const char*, struct stat*);
