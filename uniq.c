@@ -308,6 +308,12 @@ main(int argc, char *argv[])
     int wFlag = 0;
     int width = 0;
 
+
+    if(argc <= 1){
+        uniq(0, cFlag, uFlag, wFlag, width);
+        exit();
+    }
+
     if (strcmp(argv[1], "-c") == 0)
     {
         cFlag = 1;

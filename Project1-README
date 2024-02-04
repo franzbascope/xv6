@@ -1,0 +1,24 @@
+Neda Amirirad 
+Abdullah Al Monsur 
+Ricardo Frumento
+
+Two systems were used for implementation and testing, one was used for testing
+
+Implementation:
+1)	Chip: Apple M1
+	OS: Sonoma 14.0
+	
+Implementation and Testing:
+2)	CPU: Intel(R) Core(TM) i7-6700HQ CPU @ 2.60GHz
+	OS: #40-Ubuntu SMP PREEMPT_DYNAMIC Tue Nov 14 14:18:00 UTC 2023
+	
+For environment 1) errors during compilation were avoided with some flag suppresion
+	- make -j CFLAG=Wno-array-bounds TOOLPREFIX=i686-elf-
+	- make -j CFLAGS=Wno-infinite-recursion TOOLPREFIX=i686-elf- qemu-nox
+	
+Testing was conducted in system 2) which did not require any additional steps. Screen shots are included in the required folders and inside the make_screenshots folder.
+
+In ls.c it was included the '-a' flag usage and included a '/' after folder names, but it did change the formatting of the commmand. ('/' shows up after all the blank spaces added by fmtname);
+In sleep.c it was used the sleep system call as requested per project instructions;
+In uniq.c a 'test_uniq.txt' file is included to test functionality, it seems to work with a simpler version and with the current more complext version;
+In find.c most of the implementation was using the ls.c functionality but instead of printing all names, only print the ones that match the query. Also, enter any folders found in the current one and repeat the process.
