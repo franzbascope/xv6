@@ -33,6 +33,8 @@ uniq(int fd, int cFlag, int uFlag, int wFlag, int width){
         {  
             for (int l = 0; l < lines-1; l++)
             {
+                memset(curr,0,strlen(curr));
+                memset(next,0,strlen(next));
                 for (int i = 0; buf1[i+size] != '\n'; i++)
                 {
                     if (buf1[i+size] == '\0')
@@ -89,74 +91,10 @@ uniq(int fd, int cFlag, int uFlag, int wFlag, int width){
         }
         else if(uFlag==1)
         {
-	    printf(1, "uflag on");
-        int occ=0;
             for (int l = 0; l < lines-1; l++)
             {
-                
-                for (int i = 0; buf1[i+size] != '\n'; i++)
-                {
-                    if (buf1[i+size] == '\0')
-                    {
-                        stop = 1;
-                        break;
-                    }
-                    
-                    curr[i] = buf1[i+size];
-                    count++;
-                }
-
-                if (stop == 1)
-                {
-                    break;
-                }
-                
-
-                count++;
-                size = count;
-                for (int l1=l+1; lines; l1++)
-                {
-                    stop=0;
-                    for (int j = 0; buf1[j+size] != '\n'; j++)
-                    {
-                        if (buf1[j+size] == '\0')
-                        {
-                            stop = 1;
-                            break;
-                        }
-                        next[j] = buf1[j+size];
-                    }
-                    if (stop == 1)
-                    {
-                        continue;
-                    }
-                    counter = 0;
-                    equal = 0;
-                    for (int l = 0;  curr[l] != '\0'; l++)
-                    {
-                        counter++;
-                        if (curr[l] == next[l])
-                        {
-                            equal++;
-                        }
-                    }
-
-                    if (counter == equal)
-                    {
-                        occ++;
-                    }
-                } 
-		        if (occ<1)
-		        {
-		            printf(1, "%s\n", curr);
-		        }
-		        occ=0;
-            }
-        }
-        else if(wFlag==1)
-        {
-            for (int l = 0; l < lines-1; l++)
-            {
+                memset(curr,0,strlen(curr));
+                memset(next,0,strlen(next));
                 for (int i = 0; buf1[i+size] != '\n'; i++)
                 {
                     if (buf1[i+size] == '\0')
@@ -199,32 +137,31 @@ uniq(int fd, int cFlag, int uFlag, int wFlag, int width){
                     }
                 }
 
-                if (equal>=width)
+                
+                if (counter == equal)
                 {
-                    if (prev_equal != 1)
-                    {
-                        printf(1, "%s\n", next);    
-                    }
-                    prev_equal = 1;
+                    occ+=1; //incrementing occurances
                 }
                 else
                 {
-                    if (prev_equal != 1)
+                    if (occ == 1)
                     {
-                        printf(1, "%s\n", curr);
-                        printf(1, "%s\n", next);
+                        printf(1, "(%d) %s\n", occ, curr);
                     }
-                    
-                    prev_equal = 0;
-                }
-
-                
+                    occ=1;
+                }               
             }
+            //if (occ == 1)
+            //{
+            //    printf(1, "(%d) %s\n", occ, curr);
+            //}
         }
-        else
+        else if(wFlag==1)
         {
             for (int l = 0; l < lines-1; l++)
             {
+                memset(curr,0,strlen(curr));
+                memset(next,0,strlen(next));
                 for (int i = 0; buf1[i+size] != '\n'; i++)
                 {
                     if (buf1[i+size] == '\0')
@@ -242,6 +179,75 @@ uniq(int fd, int cFlag, int uFlag, int wFlag, int width){
                     break;
                 }
                 
+
+                count++;
+                size = count;
+
+                for (int j = 0; buf1[j+size] != '\n'; j++)
+                {
+                    if (buf1[j+size] == '\0')
+                    {
+                        stop = 1;
+                        break;
+                    }
+                    next[j] = buf1[j+size];
+                }
+                
+                counter = 0;
+                equal = 0;
+                for (int l = 0;  curr[l] != '\0'; l++)
+                {
+                    counter++;
+                    if (curr[l] == next[l])
+                    {
+                        equal++;
+                    }
+                }
+
+                if (equal >= width)
+                {
+                    if (prev_equal != 1)
+                    {
+                        printf(1, "%s\n", next);    
+                    }
+                    prev_equal = 1;
+                }
+                else
+                {
+                    if (prev_equal == 1)
+                    {
+                        printf(1, "%s\n", next);
+                    }
+                    
+                    prev_equal = 0;
+                }
+
+                
+            }
+        }
+        else
+        {
+            for (int l = 0; l < lines-1; l++)
+            {
+                memset(curr,0,strlen(curr));
+                memset(next,0,strlen(next));
+
+                for (int i = 0; buf1[i+size] != '\n'; i++)
+                {
+                    if (buf1[i+size] == '\0')
+                    {
+                        stop = 1;
+                        break;
+                    }
+                    
+                    curr[i] = buf1[i+size];
+                    count++;
+                }
+
+                if (stop == 1)
+                {
+                    break;
+                }
 
                 count++;
                 size = count;
@@ -277,9 +283,8 @@ uniq(int fd, int cFlag, int uFlag, int wFlag, int width){
                 }
                 else
                 {
-                    if (prev_equal != 1)
+                    if (prev_equal == 1)
                     {
-                        printf(1, "%s\n", curr);
                         printf(1, "%s\n", next);
                     }
                     
