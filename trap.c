@@ -8,6 +8,8 @@
 #include "traps.h"
 #include "spinlock.h"
 
+#define LOCALITY_PAGES 3
+
 // Interrupt descriptor table (shared by all CPUs).
 struct gatedesc idt[256];
 extern uint vectors[];  // in vectors.S: array of 256 entry pointers
@@ -86,11 +88,29 @@ trap(struct trapframe *tf)
     break;
 
   case T_PGFLT:
+  // Getting the address that caused the page fault
     a= rcr2();
+    // Rounding the address to the nearest lower page
     a = PGROUNDDOWN(a);
-    mem = kalloc();
-    memset(mem, 0, PGSIZE);
-    mappages(myproc()->pgdir, (char*)a, PGSIZE, V2P(mem), PTE_W|PTE_U);
+    #ifdef LAZY
+      // allocationg a page of memory 
+      mem = kalloc();
+      memset(mem, 0, PGSIZE);
+      // Adding a page entry
+      mappages(myproc()->pgdir, (char*)a, PGSIZE, V2P(mem), PTE_W|PTE_U);
+    #else
+    #ifdef LOCALITY
+      // Adding the next 3 pages to the page table
+      int pageFaultAddress = a;
+      for (int i = 0; i < LOCALITY_PAGES; i++) {
+        mem = kalloc();
+        memset(mem, 0, PGSIZE);
+        mappages(myproc()->pgdir, (char*)pageFaultAddress, PGSIZE, V2P(mem), PTE_W|PTE_U);
+        pageFaultAddress += PGSIZE;
+      }
+    #endif
+    #endif
+    
     break;
 
   //PAGEBREAK: 13
