@@ -49,7 +49,17 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+  int ticks_running;
+  int tickets;
 };
+
+int get_ticks_running(int pid);
+
+int get_fifo_position(int pid);
+
+void set_lotery_tickets(struct proc *cp);
+
+int get_lotery_tickets(int pid);
 
 // Process memory is laid out contiguously, low addresses first:
 //   text

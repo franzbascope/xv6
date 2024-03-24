@@ -7,10 +7,89 @@
 #include "proc.h"
 #include "spinlock.h"
 
+#define MIN 1
+#define MAX 64
+#define SEED 987654321
+
 struct {
   struct spinlock lock;
   struct proc proc[NPROC];
 } ptable;
+
+struct {
+struct proc* queue[NPROC];
+int front;
+int rear;
+} pqueue;
+
+int
+enqueue(struct proc* p)
+{
+  if (pqueue.rear == NPROC - 1) {
+    return -1;
+  }
+
+  if (pqueue.front == -1) {
+    pqueue.front = 0;
+  }
+  pqueue.queue[++pqueue.rear] = p;
+  return 0;
+}
+
+struct proc*
+dequeue(void)
+{
+  if (pqueue.front == -1) {
+    return 0;
+  }
+
+  struct proc* p = pqueue.queue[pqueue.front];
+
+  if (pqueue.front == pqueue.rear) {
+    pqueue.front = pqueue.rear = -1;
+  } else {
+    pqueue.front++;
+  }
+
+  return p;
+}
+
+int
+get_position(struct proc* p)
+{
+    for (int i = pqueue.front; i <= pqueue.rear; i++) {
+        if (pqueue.queue[i] == p) {
+            return i - pqueue.front + 1;
+        }
+    }
+
+    // Process not found in the queue
+    return -1;
+}
+
+static uint z1 = SEED, z2 = SEED, z3 = SEED, z4 = SEED;
+
+double
+random(void)
+{
+  uint b;
+  b  = ((z1 << 6) ^ z1) >> 13;
+  z1 = ((z1 & 4294967294U) << 18) ^ b;
+  b  = ((z2 << 2) ^ z2) >> 27;
+  z2 = ((z2 & 4294967288U) << 2) ^ b;
+  b  = ((z3 << 13) ^ z3) >> 21;
+  z3 = ((z3 & 4294967280U) << 7) ^ b;
+  b  = ((z4 << 3) ^ z4) >> 12;
+  z4 = ((z4 & 4294967168U) << 13) ^ b;
+  return (z1 ^ z2 ^ z3 ^ z4) * 2.3283064365386963e-10;
+}
+
+int
+get_random(int min, int max)
+{
+  int range = max - min;
+  return min + (random() * range);
+}
 
 static struct proc *initproc;
 
@@ -88,6 +167,8 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
+  p->ticks_running = 0;
+  p->tickets = get_random(MIN,MAX);
 
   release(&ptable.lock);
 
@@ -322,36 +403,101 @@ wait(void)
 void
 scheduler(void)
 {
-  struct proc *p;
   struct cpu *c = mycpu();
   c->proc = 0;
   
-  for(;;){
+  for(;;)
+  {
     // Enable interrupts on this processor.
     sti();
 
     // Loop over process table looking for process to run.
     acquire(&ptable.lock);
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->state != RUNNABLE)
-        continue;
+    //int scheduler = 2;
+    #ifdef FIFO
+      struct proc *p;
+      for (p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+      {
+        if (p->state != RUNNABLE)
+          continue;
 
-      // Switch to chosen process.  It is the process's job
-      // to release ptable.lock and then reacquire it
-      // before jumping back to us.
-      c->proc = p;
-      switchuvm(p);
-      p->state = RUNNING;
+        enqueue(p);
+      }
 
-      swtch(&(c->scheduler), p->context);
-      switchkvm();
+      while (1)
+      {
+        p = dequeue();
 
-      // Process is done running for now.
-      // It should have changed its p->state before coming back.
-      c->proc = 0;
-    }
+        if (p == 0)
+        {
+          break;
+        }
+
+        p->state = RUNNING;
+        c->proc = p;
+        switchuvm(p);
+
+        swtch(&(c->scheduler), p->context);
+
+        switchkvm();
+
+        c->proc = 0;
+      }
+    #else
+    #ifdef LOTTERY
+      struct proc *p;
+      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+      {
+        if(p->state != RUNNABLE)
+          continue;
+        release(&ptable.lock);
+        set_lotery_tickets(p);
+        acquire(&ptable.lock);
+
+      }
+      int lottery = get_random(MIN,MAX);
+      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+      {
+        if(p->state != RUNNABLE)
+          continue;
+        if (p->tickets == lottery)
+        {
+          c->proc = p;
+          switchuvm(p);
+          p->state = RUNNING;
+
+          swtch(&(c->scheduler), p->context);
+          switchkvm();
+
+          c->proc = 0;
+        }
+      }
+    #else
+    #ifdef DEFAULT
+      struct proc *p;
+      for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+      {
+        if(p->state != RUNNABLE)
+          continue;
+
+        // Switch to chosen process.  It is the process's job
+        // to release ptable.lock and then reacquire it
+        // before jumping back to us.
+        c->proc = p;
+        switchuvm(p);
+        p->state = RUNNING;
+
+        swtch(&(c->scheduler), p->context);
+        switchkvm();
+
+        // Process is done running for now.
+        // It should have changed its p->state before coming back.
+        c->proc = 0;
+      }
+    #endif
+    #endif
+    #endif
     release(&ptable.lock);
-
   }
 }
 
@@ -531,4 +677,66 @@ procdump(void)
     }
     cprintf("\n");
   }
+}
+
+int get_ticks_running(int pid) {
+  struct proc *p;
+  int ticks = -1;
+  acquire(&ptable.lock);
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+    if (p->pid == pid) {
+      ticks = p->ticks_running;
+    }
+  }
+  release(&ptable.lock);
+  return ticks;
+}
+
+int get_fifo_position(int pid)
+{
+  struct proc *p;
+  int position = -1;
+  acquire(&ptable.lock);
+  cprintf("Queue while process %d is running:\n",pid);
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+    if (get_position(p)!=-1)
+    {
+      cprintf("Process %d is in position %d\n",p->pid,get_position(p));
+    }
+    
+    if (p->pid == pid)
+    {
+      position = get_position(p);
+    }
+  }
+  release(&ptable.lock);
+  return position;
+}
+
+void
+set_lotery_tickets(struct proc *cp)
+{
+  struct proc *p;
+  acquire(&ptable.lock);
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+    if (p->pid == cp->pid) {
+      p->tickets = get_random(MIN, MAX);
+    }
+  }
+  release(&ptable.lock);
+}
+
+int
+get_lotery_tickets(int pid)
+{
+  struct proc *p;
+  int tickets = -1;
+  acquire(&ptable.lock);
+  for (p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
+    if (p->pid == pid) {
+      tickets = p->tickets;
+    }
+  }
+  release(&ptable.lock);
+  return tickets;
 }

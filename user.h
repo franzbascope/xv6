@@ -23,9 +23,13 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 // Add system calls below
-int hello(void);
+int mytest(void);
 int uniq(int, int, int, int, int);
 void find(char*, char*, int, int, int, char*, int);
+int ticks_running(int);
+int fifo_position(int);
+void set_lotery_tickets(int, int);
+int get_lotery_tickets(int);
 
 // ulib.c
 int stat(const char*, struct stat*);

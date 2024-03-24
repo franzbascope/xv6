@@ -1,0 +1,48 @@
+Neda Amirirad 
+Abdullah Al Monsur 
+Ricardo Frumento
+
+TOPICS
+	1) Environment
+	2) Implementation Details
+	3) Testing
+	4) Important Remarks
+
+
+ENVIRONMENT
+
+The system used for implementation and testing
+	
+Implementation and Testing:
+	CPU: Intel(R) Core(TM) i7-6700HQ CPU @ 2.60GHz
+	OS: #40-Ubuntu SMP PREEMPT_DYNAMIC Tue Nov 14 14:18:00 UTC 2023
+	
+Testing did not require any additional steps. Screen shots are included in the required folders and inside the make_screenshots folder.
+
+To choose the scheduler the steps are:
+1) make clean
+2) make SCHEDULER=DEFAULT
+3) make qemu
+
+
+IMPLEMENTATION DETAILS
+
+1) The ticks_running system call implemented changes the amount of ticks every time there is a context switch so it keeps track of how many have passed for that run of the process (this can be seen in the scheduler test as the ticks for the parent process do not include the ticks for the child processes)
+
+2) The chosen simple scheduler was FIFO, to implement the scheduler a struct was introduced, a queue of processes, everytime a new process is created in allocproc and is runnable it gets queue so when the scheduler is running it knows the order of the processes to change from runnable to running
+
+3) The chosen advanced scheduler was Lottery, to implement the scheduler a member variable was introduced tickets, which are updated in the moment of the process creation by a function that generates a random number between the min and max of the possible number of tickets. The scheduler runs the random function again and and with the new generated number goes through the processes table to find the winning one, if there isn't one, it draws again until it finds a match.
+
+
+TESTING
+
+1) The first test is ticks_running_test, it runs a simple process with a loop inside printing "Waiting..." on the screen so the ticks change when it runs
+
+2) The second test designed for the FIFO test but can be run in any scheduler as it will print an empty queue for the other schedulers. The code is a for loop with the fork function inside, that creates four new processes that will be placed in the queue as they are created (in order).
+
+3) The third test uses the same idea as the second but to show that execution order of the child process might change between different runs as now the scheduler draws a tickes to see which will be move to running
+
+
+IMPORTANT REMARKS
+
+1) The random number generator was grabed from Tables of Maximally-Equidistributed Combined Lfsr Generators by Pierre L'Ecuyer, Published in 1998. The code can be found in the link http://www.iro.umontreal.ca/~simardr/rng/lfsr113.c

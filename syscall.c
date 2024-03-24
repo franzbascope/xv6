@@ -103,8 +103,12 @@ extern int sys_unlink(void);
 extern int sys_wait(void);
 extern int sys_write(void);
 //Add other system calls below
-extern int sys_hello(void);
+extern int sys_mytest(void);
 extern int sys_uniq(void);
+extern int sys_ticks_running(void);
+extern int sys_fifo_position(void);
+extern int sys_set_lotery_tickets(void);
+extern int sys_get_lotery_tickets(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -127,6 +131,10 @@ static int (*syscalls[])(void) = {
 [SYS_link]    sys_link,
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
+[SYS_ticks_running] sys_ticks_running,
+[SYS_fifo_position] sys_fifo_position,
+[SYS_set_lotery_tickets] sys_set_lotery_tickets,
+[SYS_get_lotery_tickets] sys_get_lotery_tickets,
 };
 
 void
@@ -143,4 +151,49 @@ syscall(void)
             curproc->pid, curproc->name, num);
     curproc->tf->eax = -1;
   }
+}
+
+int 
+sys_ticks_running(void)
+{
+  int pid;
+
+  if (argint(0, &pid) < 0)
+    return -1;
+
+  int ticks = get_ticks_running(pid);
+  return ticks;
+}
+
+int 
+sys_fifo_position(void)
+{
+  int pid;
+
+  if (argint(0, &pid) < 0)
+    return -1;
+
+  int position = get_fifo_position(pid);
+  return position;
+}
+
+int
+sys_set_lotery_tickets(void)
+{
+  struct proc *curproc = myproc();
+
+  set_lotery_tickets(curproc);
+  return 0;
+}
+
+int
+sys_get_lotery_tickets(void)
+{
+  int pid;
+
+  if (argint(0, &pid) < 0)
+    return -1;
+
+  int tickets = get_lotery_tickets(pid);
+  return tickets;
 }
