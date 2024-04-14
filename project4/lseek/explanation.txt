@@ -1,0 +1,8 @@
+Use test_lseek program to test lseek functionality.
+
+This program does the following thigs:
+
+1. Creates a file and writes Hello, World!
+2. Opens the file to read and calls lseek with value 4
+3. When printing the read the result is o, World, this is
+correct because we moved the file offset by 4 bytes.

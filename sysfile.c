@@ -100,7 +100,7 @@ int sys_custom_lseek(void)
   ilock(f->ip);
   f->off += offset;
   iunlock(f->ip);
-  return 0;
+  return f->off;
 }
 
 int
