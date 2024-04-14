@@ -346,6 +346,12 @@ sys_open(void)
 }
 
 int
+sys_symlink(void)
+{
+  return 7;
+}
+
+int
 sys_mkdir(void)
 {
   char *path;
