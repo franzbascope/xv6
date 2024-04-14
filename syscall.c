@@ -109,6 +109,7 @@ extern int sys_ticks_running(void);
 extern int sys_fifo_position(void);
 extern int sys_set_lotery_tickets(void);
 extern int sys_get_lotery_tickets(void);
+extern int sys_custom_lseek(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -135,6 +136,7 @@ static int (*syscalls[])(void) = {
 [SYS_fifo_position] sys_fifo_position,
 [SYS_set_lotery_tickets] sys_set_lotery_tickets,
 [SYS_get_lotery_tickets] sys_get_lotery_tickets,
+[SYS_custom_lseek]   sys_custom_lseek,
 };
 
 void

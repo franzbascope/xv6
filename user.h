@@ -30,6 +30,7 @@ int ticks_running(int);
 int fifo_position(int);
 void set_lotery_tickets(int, int);
 int get_lotery_tickets(int);
+int custom_lseek(int,int);
 
 // ulib.c
 int stat(const char*, struct stat*);
