@@ -90,6 +90,19 @@ sys_write(void)
   return filewrite(f, p, n);
 }
 
+int sys_custom_lseek(void)
+{
+  struct file *f;
+  int offset;
+
+  if (argfd(0, 0, &f) < 0 || argint(1, &offset) < 0)
+    return -1;
+  ilock(f->ip);
+  f->off += offset;
+  iunlock(f->ip);
+  return 0;
+}
+
 int
 sys_close(void)
 {

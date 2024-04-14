@@ -75,19 +75,3 @@ sys_sleep(void)
   release(&tickslock);
   return 0;
 }
-
-int
-sys_custom_lseek(void)
-{
-  // take first two arguments of lseek
-  int fd;
-  int offset;
-
-  // if the arguments are not integers, return -1
-  if(argint(0, &fd) < 0 || argint(1, &offset) < 0)
-    return -1;
-  
-  // print file descriptor and offset
-  cprintf("fd: %d, offset: %d\n", fd, offset);
-  return 0;
-}

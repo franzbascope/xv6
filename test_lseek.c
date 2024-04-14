@@ -1,29 +1,50 @@
 #include "types.h"
-#include "stat.h"
 #include "user.h"
+#include "fcntl.h"
 
-char buf[512];
-
-void
-test_lseek(int fd)
+int main(void)
 {
-  // print fd
-    printf(1, "fd: %d\n", fd);
-    custom_lseek(fd, 0);
-}
+  int fd;
+  char buffer[512];
 
-int
-main(int argc, char *argv[])
-{
-  int fd, i;
-
-  for(i = 1; i < argc; i++){
-    if((fd = open(argv[i], 0)) < 0){
-      printf(1, "cat: cannot open %s\n", argv[i]);
-      exit();
-    }
-    test_lseek(fd);
-    close(fd);
+  // Open a new file for writing
+  fd = open("testfile", O_CREATE | O_RDWR);
+  if (fd < 0)
+  {
+    printf(1, "Failed to create file\n");
+    exit();
   }
+
+  // Write some content to the file
+  if (write(fd, "Hello, World!\n", 14) != 14)
+  {
+    printf(1, "Write error\n");
+    exit();
+  }
+
+  // Close and reopen the file for reading
+  close(fd);
+  fd = open("testfile", O_RDONLY);
+  custom_lseek(fd, 4);
+  if (fd < 0)
+  {
+    printf(1, "Failed to open file\n");
+    exit();
+  }
+
+  // Read the content of the file
+  int n = read(fd, buffer, sizeof(buffer));
+  if (n < 0)
+  {
+    printf(1, "Read error\n");
+    exit();
+  }
+
+  // Print the content of the file
+  printf(1, "%s", buffer);
+
+  // Close the file
+  close(fd);
+
   exit();
 }
