@@ -491,7 +491,8 @@ writei(struct inode *ip, char *src, uint off, uint n)
   }
 
   while(off > ip->size || off + n < off){
-    if(writei(ip, 0, ip->size, 1) < 0)
+    char myChar = ' ';
+    if(writei(ip,&myChar, ip->size, 1) < 0)
       return -1;
   }
   if(off + n > MAXFILE*BSIZE)
