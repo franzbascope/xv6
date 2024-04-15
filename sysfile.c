@@ -319,8 +319,8 @@ sys_open(void)
       end_op();
       return -1;
     }
-    if(omode & O_NOFOLLOW){
-      if(ip->type == T_SYMLINK){
+    // if flag O_NOFOLLOW is set , do not follow the link
+    if(ip->type == T_SYMLINK && !(omode & O_NOFOLLOW)){
         char target[512];
         int counter = 0;
         while(ip->type == T_SYMLINK){
@@ -330,10 +330,12 @@ sys_open(void)
           counter++;
           readi(ip, target, 0, ip->size);
           target[ip->size] = '\0';
-          ip = namei(target);
+          if((ip = namei(target)) == 0){
+            end_op();
+            return -1;
+          }
         }
       }
-    }
     ilock(ip);
     if(ip->type == T_DIR && omode != O_RDONLY){
       iunlockput(ip);

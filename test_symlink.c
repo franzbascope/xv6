@@ -25,7 +25,7 @@ int main()
     const char *linkpath = "/symbolic_link";
     symlink(target, linkpath);
     // open symbolic link
-    int linkfd = open(linkpath, O_NOFOLLOW);
+    int linkfd = open(linkpath, O_RDONLY);
     // read symbolic link
     char linkbuffer[512];
     int linkn = read(linkfd, linkbuffer, sizeof(linkbuffer));
@@ -36,6 +36,10 @@ int main()
     if (strcmp(buffer, linkbuffer) == 0)
     {
         printf(1, "Content of /test_folder/file.txt and /symbolic_link are the same\n");
+    }
+    else
+    {
+        printf(1, "Content of /test_folder/file.txt and /symbolic_link are different\n");
     }
 
     exit();
