@@ -490,8 +490,11 @@ writei(struct inode *ip, char *src, uint off, uint n)
     return devsw[ip->major].write(ip, src, n);
   }
 
-  if(off > ip->size || off + n < off)
-    return -1;
+  while(off > ip->size || off + n < off){
+    char myChar = ' ';
+    if(writei(ip,&myChar, ip->size, 1) < 0)
+      return -1;
+  }
   if(off + n > MAXFILE*BSIZE)
     return -1;
 

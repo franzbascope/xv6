@@ -90,6 +90,19 @@ sys_write(void)
   return filewrite(f, p, n);
 }
 
+int sys_custom_lseek(void)
+{
+  struct file *f;
+  int offset;
+
+  if (argfd(0, 0, &f) < 0 || argint(1, &offset) < 0)
+    return -1;
+  ilock(f->ip);
+  f->off += offset;
+  iunlock(f->ip);
+  return f->off;
+}
+
 int
 sys_close(void)
 {
@@ -330,6 +343,12 @@ sys_open(void)
   f->readable = !(omode & O_WRONLY);
   f->writable = (omode & O_WRONLY) || (omode & O_RDWR);
   return fd;
+}
+
+int
+sys_symlink(void)
+{
+  return 7;
 }
 
 int

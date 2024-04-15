@@ -12,6 +12,7 @@ int close(int);
 int kill(int);
 int exec(char*, char**);
 int open(const char*, int);
+int symlink(const char*, const char*);
 int mknod(const char*, short, short);
 int unlink(const char*);
 int fstat(int fd, struct stat*);
@@ -30,6 +31,7 @@ int ticks_running(int);
 int fifo_position(int);
 void set_lotery_tickets(int, int);
 int get_lotery_tickets(int);
+int custom_lseek(int,int);
 
 // ulib.c
 int stat(const char*, struct stat*);

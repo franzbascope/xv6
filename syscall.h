@@ -24,3 +24,5 @@
 #define SYS_fifo_position 23
 #define SYS_set_lotery_tickets 24
 #define SYS_get_lotery_tickets 25
+#define SYS_custom_lseek 26
+#define SYS_symlink 27

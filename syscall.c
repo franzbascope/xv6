@@ -95,6 +95,7 @@ extern int sys_link(void);
 extern int sys_mkdir(void);
 extern int sys_mknod(void);
 extern int sys_open(void);
+extern int sys_symlink(void);
 extern int sys_pipe(void);
 extern int sys_read(void);
 extern int sys_sbrk(void);
@@ -109,6 +110,7 @@ extern int sys_ticks_running(void);
 extern int sys_fifo_position(void);
 extern int sys_set_lotery_tickets(void);
 extern int sys_get_lotery_tickets(void);
+extern int sys_custom_lseek(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -125,6 +127,7 @@ static int (*syscalls[])(void) = {
 [SYS_sbrk]    sys_sbrk,
 [SYS_sleep]   sys_sleep,
 [SYS_open]    sys_open,
+[SYS_symlink]    sys_symlink,
 [SYS_write]   sys_write,
 [SYS_mknod]   sys_mknod,
 [SYS_unlink]  sys_unlink,
@@ -135,6 +138,7 @@ static int (*syscalls[])(void) = {
 [SYS_fifo_position] sys_fifo_position,
 [SYS_set_lotery_tickets] sys_set_lotery_tickets,
 [SYS_get_lotery_tickets] sys_get_lotery_tickets,
+[SYS_custom_lseek]   sys_custom_lseek,
 };
 
 void
