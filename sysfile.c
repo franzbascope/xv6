@@ -319,6 +319,23 @@ sys_open(void)
       end_op();
       return -1;
     }
+    // if flag O_NOFOLLOW is set , do not follow the link
+    if(ip->type == T_SYMLINK && !(omode & O_NOFOLLOW)){
+        char target[512];
+        int counter = 0;
+        while(ip->type == T_SYMLINK){
+          if(counter > 10){
+            return -1;
+          }
+          counter++;
+          readi(ip, target, 0, ip->size);
+          target[ip->size] = '\0';
+          if((ip = namei(target)) == 0){
+            end_op();
+            return -1;
+          }
+        }
+      }
     ilock(ip);
     if(ip->type == T_DIR && omode != O_RDONLY){
       iunlockput(ip);
@@ -348,7 +365,30 @@ sys_open(void)
 int
 sys_symlink(void)
 {
-  return 7;
+  char *target, *path;
+  struct inode *ip;
+
+  if(argstr(0, &target) < 0 || argstr(1, &path) < 0)
+    return -1;
+  // it locks the file system
+  begin_op();
+  // it creates a new inode with the type T_SYMLINK
+  if((ip = create(path, T_SYMLINK, 0, 0)) == 0){
+    end_op();
+    return -1;
+  }
+  // it writes the target string to the inode
+  if(writei(ip, target, 0, strlen(target)) < 0){
+    iunlockput(ip);
+    end_op();
+    return -1;
+  }
+  // it unlocks the inode
+  iunlockput(ip);
+  // it unlocks the file system
+  end_op();
+  return 0;
+  
 }
 
 int
