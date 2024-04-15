@@ -16,12 +16,27 @@ int main()
     char buffer[512];
     int n = read(fd, buffer, sizeof(buffer));
     buffer[n] = '\0';
-    printf(1, "File content: %s\n", buffer);
+    printf(1, "Created file at /test_folder/file.txt\n");
+    printf(1, "/test_folder/file.tx content: %s\n", buffer);
+    printf(1,"******* \n");
 
     // create symbolic link
     const char *target = "/test_folder/file.txt";
     const char *linkpath = "/symbolic_link";
-    int result = symlink(target, linkpath);
-    printf(1, "Process %d\n", result);
+    symlink(target, linkpath);
+    // open symbolic link
+    int linkfd = open(linkpath, O_NOFOLLOW);
+    // read symbolic link
+    char linkbuffer[512];
+    int linkn = read(linkfd, linkbuffer, sizeof(linkbuffer));
+    linkbuffer[linkn] = '\0';
+    printf(1, "Created symbolic link at /symbolic_link pointing to /test_folder/file.txt\n");
+    printf(1, "/symbolic_link content: %s\n", linkbuffer);
+    // compare buffer with link buffer
+    if (strcmp(buffer, linkbuffer) == 0)
+    {
+        printf(1, "Content of /test_folder/file.txt and /symbolic_link are the same\n");
+    }
+
     exit();
 }

@@ -319,6 +319,21 @@ sys_open(void)
       end_op();
       return -1;
     }
+    if(omode & O_NOFOLLOW){
+      if(ip->type == T_SYMLINK){
+        char target[512];
+        int counter = 0;
+        while(ip->type == T_SYMLINK){
+          if(counter > 10){
+            return -1;
+          }
+          counter++;
+          readi(ip, target, 0, ip->size);
+          target[ip->size] = '\0';
+          ip = namei(target);
+        }
+      }
+    }
     ilock(ip);
     if(ip->type == T_DIR && omode != O_RDONLY){
       iunlockput(ip);
