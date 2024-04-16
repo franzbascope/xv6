@@ -1,8 +1,0 @@
-In this test we do the following steps:
-1. Create a file at test_folder/file.txt with content: Hello, World!
-2. Create symlink "symbolic_link" that targets "test_folder/file.txt"
-3. We read symlink and verify it shows the content from "test_folder/file.txt"
-4. We create a hard link symbolic_link2 that points to symbolic_link,
-we print the result and verified that the actual symlink was used and not the target.
-5. We unlink symbolic_link, and check if test_folder/file.txt still exists,
-this proves that the unlink sys call does not follow the sym link.

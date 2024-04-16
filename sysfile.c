@@ -377,6 +377,10 @@ sys_symlink(void)
     end_op();
     return -1;
   }
+  // add null terminator to the target string
+  target[strlen(target)] = '\0';
+
+
   // it writes the target string to the inode
   if(writei(ip, target, 0, strlen(target)) < 0){
     iunlockput(ip);

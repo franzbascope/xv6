@@ -396,6 +396,56 @@ bmap(struct inode *ip, uint bn)
     return addr;
   }
 
+    bn -= NINDIRECT;
+  // First double indirect block
+  if(bn < NDOUBLEINDIRECT){
+    // Load doubly indirect block, allocating if necessary.
+    if((addr = ip->addrs[NDIRECT + 1]) == 0)
+      ip->addrs[NDIRECT + 1] = addr = balloc(ip->dev);
+    bp = bread(ip->dev, addr);
+    a = (uint*)bp->data;
+    uint second_level_index = bn / NINDIRECT;
+    uint first_level_index = bn % NINDIRECT;
+    if((addr = a[second_level_index]) == 0){
+      a[second_level_index] = addr = balloc(ip->dev);
+      log_write(bp);
+    }
+    brelse(bp);
+    bp = bread(ip->dev, addr);
+    a = (uint*)bp->data;
+    if((addr = a[first_level_index]) == 0){
+      a[first_level_index] = addr = balloc(ip->dev);
+      log_write(bp);
+    }
+    brelse(bp);
+    return addr;
+  }
+  // second double indirect block
+   bn -= NDOUBLEINDIRECT;
+
+  if(bn < NDOUBLEINDIRECT){
+    // Load second doubly indirect block, allocating if necessary.
+    if((addr = ip->addrs[NDIRECT + 2]) == 0)
+      ip->addrs[NDIRECT + 2] = addr = balloc(ip->dev);
+    bp = bread(ip->dev, addr);
+    a = (uint*)bp->data;
+    uint second_level_index = bn / NINDIRECT;
+    uint first_level_index = bn % NINDIRECT;
+    if((addr = a[second_level_index]) == 0){
+      a[second_level_index] = addr = balloc(ip->dev);
+      log_write(bp);
+    }
+    brelse(bp);
+    bp = bread(ip->dev, addr);
+    a = (uint*)bp->data;
+    if((addr = a[first_level_index]) == 0){
+      a[first_level_index] = addr = balloc(ip->dev);
+      log_write(bp);
+    }
+    brelse(bp);
+    return addr;
+  }
+
   panic("bmap: out of range");
 }
 

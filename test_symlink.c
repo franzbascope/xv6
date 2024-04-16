@@ -8,7 +8,7 @@ int main()
 
     // create target file
     int fd = open("/test_folder/file.txt", O_CREATE | O_RDWR);
-    write(fd, "Hello, World!\0", 14);
+    write(fd, "Hello, World!\n", 14);
     close(fd);
 
     // read file test_folder/file.txt and print its content
