@@ -77,6 +77,33 @@ balloc(uint dev)
   panic("balloc: out of blocks");
 }
 
+static uint
+balloc_consecutive(uint dev, uint prev_block)
+{
+  int b, bi, m;
+  struct buf *bp;
+
+  bp = 0;
+  for (b = prev_block + 1; b < sb.size; b += BPB)
+  {
+    bp = bread(dev, BBLOCK(b, sb));
+    for (bi = 0; bi < BPB && b + bi < sb.size; bi++)
+    {
+      m = 1 << (bi % 8);
+      if ((bp->data[bi / 8] & m) == 0)
+      {                        // Is block free?
+        bp->data[bi / 8] |= m; // Mark block in use.
+        log_write(bp);
+        brelse(bp);
+        bzero(dev, b + bi);
+        return b + bi;
+      }
+    }
+    brelse(bp);
+  }
+  panic("balloc_consecutive: out of blocks");
+}
+
 // Free a disk block.
 static void
 bfree(int dev, uint b)
@@ -374,6 +401,44 @@ bmap(struct inode *ip, uint bn)
 {
   uint addr, *a;
   struct buf *bp;
+
+  if (ip->type == T_EXTENT)
+  {
+    uint last_block_address = 0;
+    uint extent_length = 0;
+    uint max_extent_length = 256;
+    for (int i = 0; i < NEXTENTS; i++)
+    {
+      if(bn >= max_extent_length)
+      {
+        bn -= max_extent_length;
+        continue;
+      }
+      if (ip->addrs[i] == 0)
+      {
+        last_block_address = balloc_consecutive(ip->dev, last_block_address);
+        if (last_block_address == 0)
+          panic("bmap: no free blocks");
+        ip->addrs[i] = (last_block_address << 8) | 1; // store the block address in the extent and set the length to 1
+        return last_block_address;
+      }
+      extent_length = ip->addrs[i] & 0xFF;    // get the last byte
+      uint block_address = ip->addrs[i] >> 8; // get the first three bytes
+      cprintf("block_number: %d\n", bn);
+      cprintf("iterator i: %d\n", i);
+      cprintf("block_address: %d\n", block_address);
+      cprintf("extent_length: %d\n", extent_length);
+      if (bn < extent_length)
+      {
+        return block_address + bn;
+      }
+      last_block_address = balloc_consecutive(ip->dev, block_address); // allocate a new block
+      cprintf("last_block_address: %d\n", last_block_address);
+      ip->addrs[i] = (block_address << 8) | (extent_length + 1);
+      return last_block_address;
+    }
+    panic("bmap: out of bounds");
+  }
 
   if(bn < NDIRECT){
     if((addr = ip->addrs[bn]) == 0)

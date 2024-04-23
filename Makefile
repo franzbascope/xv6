@@ -201,6 +201,7 @@ UPROGS=\
 	_test_lseek\
 	_test_symlink\
 	_test_largefiles\
+	_test_extent\
 
 fs.img: mkfs README test_uniq.txt $(UPROGS)
 	./mkfs fs.img README test_uniq.txt $(UPROGS)

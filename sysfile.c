@@ -272,7 +272,7 @@ create(char *path, short type, short major, short minor)
 
   if((ip = ialloc(dp->dev, type)) == 0)
     panic("create: ialloc");
-
+    
   ilock(ip);
   ip->major = major;
   ip->minor = minor;
@@ -308,7 +308,16 @@ sys_open(void)
 
   begin_op();
 
-  if(omode & O_CREATE){
+  if(omode & O_EXTENT){
+    cprintf("Creating extent file\n");
+    ip = create(path, O_EXTENT, 0, 0);
+    ip->type = T_EXTENT;
+    if(ip == 0){
+      end_op();
+      return -1;
+    }
+  }
+  else if(omode & O_CREATE){
     ip = create(path, T_FILE, 0, 0);
     if(ip == 0){
       end_op();

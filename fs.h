@@ -22,6 +22,7 @@ struct superblock {
 };
 
 #define NDIRECT 10
+#define NEXTENTS 11
 #define NINDIRECT (BSIZE / sizeof(uint))
 #define NDOUBLEINDIRECT (BSIZE / sizeof(uint)* BSIZE / sizeof(uint))
 #define MAXFILE (NDIRECT + NINDIRECT + 2* NDOUBLEINDIRECT)
