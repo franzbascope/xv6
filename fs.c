@@ -77,32 +77,32 @@ balloc(uint dev)
   panic("balloc: out of blocks");
 }
 
-static uint
-balloc_consecutive(uint dev, uint prev_block)
-{
-  int b, bi, m;
-  struct buf *bp;
+// static uint
+// balloc_consecutive(uint dev, uint prev_block)
+// {
+//   int b, bi, m;
+//   struct buf *bp;
 
-  bp = 0;
-  for (b = prev_block + 1; b < sb.size; b += BPB)
-  {
-    bp = bread(dev, BBLOCK(b, sb));
-    for (bi = 0; bi < BPB && b + bi < sb.size; bi++)
-    {
-      m = 1 << (bi % 8);
-      if ((bp->data[bi / 8] & m) == 0)
-      {                        // Is block free?
-        bp->data[bi / 8] |= m; // Mark block in use.
-        log_write(bp);
-        brelse(bp);
-        bzero(dev, b + bi);
-        return b + bi;
-      }
-    }
-    brelse(bp);
-  }
-  panic("balloc_consecutive: out of blocks");
-}
+//   bp = 0;
+//   for (b = prev_block + 1; b < sb.size; b += BPB)
+//   {
+//     bp = bread(dev, BBLOCK(b, sb));
+//     for (bi = 0; bi < BPB && b + bi < sb.size; bi++)
+//     {
+//       m = 1 << (bi % 8);
+//       if ((bp->data[bi / 8] & m) == 0)
+//       {                        // Is block free?
+//         bp->data[bi / 8] |= m; // Mark block in use.
+//         log_write(bp);
+//         brelse(bp);
+//         bzero(dev, b + bi);
+//         return b + bi;
+//       }
+//     }
+//     brelse(bp);
+//   }
+//   panic("balloc_consecutive: out of blocks");
+// }
 
 // Free a disk block.
 static void
@@ -419,14 +419,18 @@ bmap(struct inode *ip, uint bn)
       extent_length = ip->addrs[i] & 0xFF;    // get the last byte
       uint block_address = ip->addrs[i] >> 8; // get the first three bytes
       //if the block number is greater than the extent we need to allocate a new block
+        // cprintf("last block address: %d\n", last_block_address);
+        // cprintf("block address: %d\n", block_address);
+        // cprintf("extent length: %d\n", extent_length);
+        // cprintf("bn: %d\n", bn);
       if (bn >= extent_length)
       {
         // if we are changing extents we need to use the last block address as the starting point
-        if(block_address == 0 && i > 0){
-          block_address = last_block_address;
+        if(block_address == 0){
+          block_address = balloc(ip->dev);
         }
         // allocationg a new block for our current extent
-        last_block_address = balloc_consecutive(ip->dev, block_address);
+        last_block_address = balloc(ip->dev);
         if (last_block_address == 0)
           panic("bmap: no free blocks");
         // updating the extent length
@@ -434,7 +438,7 @@ bmap(struct inode *ip, uint bn)
         return last_block_address;
       }
       // if the block number is less than the extent length, we return the block address in the block number offset
-      return block_address + bn;
+      return block_address + bn +1 ;
     }
     panic("bmap: out of bounds");
   }
