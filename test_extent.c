@@ -4,7 +4,7 @@
 #include "fcntl.h"
 
 #define BLOCK_SIZE 512
-#define NUM_BLOCKS 250
+#define NUM_BLOCKS 300
 
 int main(int argc, char *argv[])
 {

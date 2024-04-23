@@ -406,14 +406,16 @@ bmap(struct inode *ip, uint bn)
   {
     uint last_block_address = 0;
     uint extent_length = 0;
-    uint max_extent_length = 256;
+    uint max_extent_length = 255;
     for (int i = 0; i < NEXTENTS; i++)
     {
       // if block number is greater than the max extent length, then we need to move to the next extent
       if (bn >= max_extent_length)
       {
+        //cprintf("bn is greater than max extent_length bn: %d\n", bn);
         bn -= max_extent_length;
         continue;
+        //cprintf("Still working after continue\n");
       }
       // we get the current extent length and the block address
       extent_length = ip->addrs[i] & 0xFF;    // get the last byte
@@ -423,6 +425,7 @@ bmap(struct inode *ip, uint bn)
         // cprintf("block address: %d\n", block_address);
         // cprintf("extent length: %d\n", extent_length);
         // cprintf("bn: %d\n", bn);
+        // cprintf("i: %d\n", i);
       if (bn >= extent_length)
       {
         // if we are changing extents we need to use the last block address as the starting point
