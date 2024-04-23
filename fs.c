@@ -409,33 +409,32 @@ bmap(struct inode *ip, uint bn)
     uint max_extent_length = 256;
     for (int i = 0; i < NEXTENTS; i++)
     {
-      if(bn >= max_extent_length)
+      // if block number is greater than the max extent length, then we need to move to the next extent
+      if (bn >= max_extent_length)
       {
         bn -= max_extent_length;
         continue;
       }
-      if (ip->addrs[i] == 0)
-      {
-        last_block_address = balloc_consecutive(ip->dev, last_block_address);
-        if (last_block_address == 0)
-          panic("bmap: no free blocks");
-        ip->addrs[i] = (last_block_address << 8) | 1; // store the block address in the extent and set the length to 1
-        return last_block_address;
-      }
+      // we get the current extent length and the block address
       extent_length = ip->addrs[i] & 0xFF;    // get the last byte
       uint block_address = ip->addrs[i] >> 8; // get the first three bytes
-      cprintf("block_number: %d\n", bn);
-      cprintf("iterator i: %d\n", i);
-      cprintf("block_address: %d\n", block_address);
-      cprintf("extent_length: %d\n", extent_length);
-      if (bn < extent_length)
+      //if the block number is greater than the extent we need to allocate a new block
+      if (bn >= extent_length)
       {
-        return block_address + bn;
+        // if we are changing extents we need to use the last block address as the starting point
+        if(block_address == 0 && i > 0){
+          block_address = last_block_address;
+        }
+        // allocationg a new block for our current extent
+        last_block_address = balloc_consecutive(ip->dev, block_address);
+        if (last_block_address == 0)
+          panic("bmap: no free blocks");
+        // updating the extent length
+        ip->addrs[i] = (block_address << 8) | (extent_length + 1);
+        return last_block_address;
       }
-      last_block_address = balloc_consecutive(ip->dev, block_address); // allocate a new block
-      cprintf("last_block_address: %d\n", last_block_address);
-      ip->addrs[i] = (block_address << 8) | (extent_length + 1);
-      return last_block_address;
+      // if the block number is less than the extent length, we return the block address in the block number offset
+      return block_address + bn;
     }
     panic("bmap: out of bounds");
   }
