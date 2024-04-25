@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 
 
 
-  uint third_block_write = 300;
+  uint third_block_write = 20;
   fd = open(fileName, O_RDWR);
   printf(1, "Called lseek with value %d\n", first_block_write * BLOCK_SIZE);
   custom_lseek(fd, first_block_write * BLOCK_SIZE);
