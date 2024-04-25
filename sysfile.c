@@ -272,7 +272,7 @@ create(char *path, short type, short major, short minor)
 
   if((ip = ialloc(dp->dev, type)) == 0)
     panic("create: ialloc");
-
+    
   ilock(ip);
   ip->major = major;
   ip->minor = minor;
@@ -350,6 +350,9 @@ sys_open(void)
     iunlockput(ip);
     end_op();
     return -1;
+  }
+  if(omode & O_EXTENT){
+    ip->type = T_EXTENT;
   }
   iunlock(ip);
   end_op();

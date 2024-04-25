@@ -77,6 +77,33 @@ balloc(uint dev)
   panic("balloc: out of blocks");
 }
 
+// static uint
+// balloc_consecutive(uint dev, uint prev_block)
+// {
+//   int b, bi, m;
+//   struct buf *bp;
+
+//   bp = 0;
+//   for (b = prev_block + 1; b < sb.size; b += BPB)
+//   {
+//     bp = bread(dev, BBLOCK(b, sb));
+//     for (bi = 0; bi < BPB && b + bi < sb.size; bi++)
+//     {
+//       m = 1 << (bi % 8);
+//       if ((bp->data[bi / 8] & m) == 0)
+//       {                        // Is block free?
+//         bp->data[bi / 8] |= m; // Mark block in use.
+//         log_write(bp);
+//         brelse(bp);
+//         bzero(dev, b + bi);
+//         return b + bi;
+//       }
+//     }
+//     brelse(bp);
+//   }
+//   panic("balloc_consecutive: out of blocks");
+// }
+
 // Free a disk block.
 static void
 bfree(int dev, uint b)
@@ -374,6 +401,62 @@ bmap(struct inode *ip, uint bn)
 {
   uint addr, *a;
   struct buf *bp;
+  // I am using the first 6 slots of direct points to save the extent witht the address and the length
+  // and the next 6 to save which extens have already been finished
+  uint position = 6;
+  if (ip->type == T_EXTENT)
+  {
+    uint max_extent_length = 255;
+    for (int i = 0; i < NEXTENTS; i++)
+    {
+      // if block number is greater than the max extent length, then we need to move to the next extent
+      if (bn >= max_extent_length)
+      {
+        // cprintf("bn is greater than max extent_length bn: %d\n", bn);
+        bn -= max_extent_length;
+        continue;
+        // cprintf("Still working after continue\n");
+      }
+      // we get the current extent length and the block address
+      uint extent_length = ip->addrs[i] & 0xFF; // get the last byte
+      uint block_address = ip->addrs[i] >> 8;   // get the first three bytes
+      // if the block number is greater than the extent we need to allocate a new block
+
+      if (ip->addrs[i + position] == 1 && bn >= extent_length)
+      {
+        if (i + 1 >= NEXTENTS)
+          panic("bmap: out of bounds");
+        bn = ip->addrs[i + 1] & 0xFF;
+        continue;
+      }
+
+      if (bn >= extent_length)
+      {
+        // if we are changing extents we need to use the last block address as the starting point
+        if (block_address == 0)
+        {
+          block_address = balloc(ip->dev);
+        }
+        // allocationg a new block for our current extent
+        int current_block_address = balloc(ip->dev);
+        if (current_block_address == 0)
+          panic("bmap: no free blocks");
+        if (block_address + extent_length + 1 != current_block_address)
+        {
+          // cprintf("Could not allocate consecutive , changing extent\n");
+          ip->addrs[i + position] = 1;
+          bn = 0;
+          continue;
+        }
+        // updating the extent length
+        ip->addrs[i] = (block_address << 8) | (extent_length + 1);
+        return current_block_address;
+      }
+      // if the block number is less than the extent length, we return the block address in the block number offset
+      return block_address + bn + 1;
+    }
+    panic("bmap: out of bounds");
+  }
 
   if(bn < NDIRECT){
     if((addr = ip->addrs[bn]) == 0)
@@ -494,6 +577,11 @@ stati(struct inode *ip, struct stat *st)
   st->type = ip->type;
   st->nlink = ip->nlink;
   st->size = ip->size;
+  // assign ip->addrs to st->addrs
+  for (int i = 0; i < NDIRECT; i++)
+  {
+    st->addrs[i] = ip->addrs[i];
+  }
 }
 
 //PAGEBREAK!
