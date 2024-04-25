@@ -52,7 +52,7 @@ This is how we implemented double-indirect block:
 
 This is how we implemented extent based file system.
 
-1. We took the approach of using 4-bytes for the block address and 1-byte for the length of the extent , we use 6 extents and the remaining slots we use them as bitmap to know if the extent has already finished. e.g when cannot allocate more consecutive blocks in that extent.
+1. We took the approach of using 3-bytes for the block address and 1-byte for the length of the extent , we use 6 extents and the remaining slots we use them as bitmap to know if the extent has already finished. e.g when cannot allocate more consecutive blocks in that extent.
 2. We modify bmap to treat T_EXENT files
     - We iterate over the NEXTENTS, which is 6.
     - if the block number is greather than 255, our 1-byte for length , we set block number to 0 and change to the next extent.
@@ -66,8 +66,8 @@ This is how we implemented extent based file system.
 
 1. To do this we created a program test_extent.c that you can write and does the following things:
     - Creates a file test_extent.txt using the O_EXTENT flag and writes 300 blocks to it (This will demonstrate that after finishing 1 extent we go to the next one correctly)
-    - Create a second file named extent2 using normal direct pointers and writes 10 blocks to this (This so our previous file: test_extent.txt cannot allocate consecutive anymore)
-    - We open test_extent.txt call lseek to the end of file , and write 300 blocks to it. (This shows , how we are changing extents when we could not allocate consecutive)
+    - Create a second file named extent2 using normal direct pointers and writes 10 blocks to this (The purpose of this is so our previous file: test_extent.txt cannot allocate consecutive anymore)
+    - We open test_extent.txt call lseek to the end of file , and write 300 blocks to it. (This shows , how we are changing extents when we could not allocate consecutive and still work)
     - We print information for test_extent , printing its extents, please check screnshots for results.
     - In the results we can see each extent block address and length are correct.
 2. We created the program stat.c that prints information about the file and its pointers, to use it call `stat test_extent.txt` 
