@@ -427,7 +427,6 @@ bmap(struct inode *ip, uint bn)
       //  cprintf("i: %d\n", i);
       if(ip->addrs[i+ position] == 1 && bn >= extent_length)
       {
-        // cprintf("bn is greater than extent length\n");
         bn = 0;
         continue;
       }
@@ -579,6 +578,11 @@ stati(struct inode *ip, struct stat *st)
   st->type = ip->type;
   st->nlink = ip->nlink;
   st->size = ip->size;
+  // assign ip->addrs to st->addrs
+  for (int i = 0; i < NDIRECT; i++)
+  {
+    st->addrs[i] = ip->addrs[i];
+  }
 }
 
 //PAGEBREAK!
