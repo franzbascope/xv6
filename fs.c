@@ -421,13 +421,12 @@ bmap(struct inode *ip, uint bn)
       uint extent_length = ip->addrs[i] & 0xFF; // get the last byte
       uint block_address = ip->addrs[i] >> 8;   // get the first three bytes
       // if the block number is greater than the extent we need to allocate a new block
-      //  cprintf("block address: %d\n", block_address);
-      //  cprintf("extent length: %d\n", extent_length);
-      //  cprintf("bn: %d\n", bn);
-      //  cprintf("i: %d\n", i);
-      if(ip->addrs[i+ position] == 1 && bn >= extent_length)
+
+      if (ip->addrs[i + position] == 1 && bn >= extent_length)
       {
-        bn = 0;
+        if (i + 1 >= NEXTENTS)
+          panic("bmap: out of bounds");
+        bn = ip->addrs[i + 1] & 0xFF;
         continue;
       }
 
@@ -444,8 +443,8 @@ bmap(struct inode *ip, uint bn)
           panic("bmap: no free blocks");
         if (block_address + extent_length + 1 != current_block_address)
         {
-          //cprintf("Could not allocate consecutive , changing extent\n");
-          ip->addrs[i+position] = 1;
+          // cprintf("Could not allocate consecutive , changing extent\n");
+          ip->addrs[i + position] = 1;
           bn = 0;
           continue;
         }
