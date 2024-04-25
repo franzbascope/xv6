@@ -401,6 +401,9 @@ bmap(struct inode *ip, uint bn)
 {
   uint addr, *a;
   struct buf *bp;
+  // I am using the first 6 slots of direct points to save the extent witht the address and the length
+  // and the next 6 to save which extens have already been finished
+  uint position = 6;
   if (ip->type == T_EXTENT)
   {
     uint max_extent_length = 255;
@@ -422,6 +425,13 @@ bmap(struct inode *ip, uint bn)
       //  cprintf("extent length: %d\n", extent_length);
       //  cprintf("bn: %d\n", bn);
       //  cprintf("i: %d\n", i);
+      if(ip->addrs[i+ position] == 1 && bn >= extent_length)
+      {
+        // cprintf("bn is greater than extent length\n");
+        bn = 0;
+        continue;
+      }
+
       if (bn >= extent_length)
       {
         // if we are changing extents we need to use the last block address as the starting point
@@ -436,6 +446,7 @@ bmap(struct inode *ip, uint bn)
         if (block_address + extent_length + 1 != current_block_address)
         {
           //cprintf("Could not allocate consecutive , changing extent\n");
+          ip->addrs[i+position] = 1;
           bn = 0;
           continue;
         }
